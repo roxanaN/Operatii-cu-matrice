@@ -1,0 +1,102 @@
+332CA Nemulescu Roxana-Elena
+Tema2 Operatii cu matrice
+
+BLAS    - pentru varianta care foloseste functii blas, am ales sa folosesc
+          functia cblas_dtrmm[1], care este responsabila pentru inmultirea cu
+          o matrice triunghiulara astfel:
+            -> pentru a calcula B * At: am inmultit A, pentru care am activat
+               flag-ul de transpunere, cu BxAt, in care am retinut
+               matricea B, rezultatul urmand sa fie salvat in BxAt.
+               Prin parametrul CblasRight, am specificat modul in care se face
+               inmultirea matricelor primite ca argument
+               (de la dreapta spre stanga: BxAt = BxAt * A).
+            -> pentru a ridica matricea A la patrat, am copiat-o in A2,
+               pentru a inmulti A * A2 (altfel matricea A s-ar fi suprascris
+               in timpul inmultirii).
+            -> am inmultit apoi A2 cu B, urmand ca rezultatul sa fie retinut in B
+        - rezultatul final a fost retinut in BxAt si a fost calculat "de mana"
+        - nu am folosit matrice cu nume sugestive pentru fiecare operatie,
+          deoarece alocam inutil memorie in plus, asa ca am ales sa ma folosesc
+          de cat mai putine matrice. (in matricea B o sa am la final rezultatul
+          A^2 * B, iar in BxAt se va gasi rezultatul tuturor operatiilor).
+
+NEOPT   - pentru aceasta varianata am ales sa folosesc cate o matrice pentru
+          fiecare operatie, iar calculele au fost facute in mod clasic.
+        - am ales sa calculez At si A2 in aceeasi parcurgere a matricei A.
+        - am tinut cont de faptul ca A este superior triunghiaulara, de unde
+          rezulta ca si A^2 este superior triunghiulara, iar At este inferior
+          triunghiulara.
+
+OPT_M   - varianta optimizata urmareste scheletul variantei neoptimizate, 
+          avand aceeasi complexitate (O(n^3)), insa diferentele constau in
+          faptul ca am folosit pointeri, care optimizeaza accesul la memorie
+        - de asemenea, am ales sa pun variabilele in registre, deoarece sunt
+          cele mai rapide unitati de stocare. Utilizarea keyword-ului
+          “register” este util de folosit ca hint pentru compilator.
+        - o alta optimizare consta in faptul ca am detectat constantele din bucle,
+          folosind registrul sum.
+
+Interpretare rezultate:
+    Se observa ca timpii de rulare sunt foarte ridicati pentru implementarea
+    neoptimizata (cea mai lenta), fata de timpii obtinuti din varianta blas
+    (cea mai rapida), care foloseste functii din biblioteca atlas, extrem
+    de optimizate.
+    Varianta optimizata este mai rapida decat cea neoptimizata, datorita
+    imbunatatirilor prezentate mai sus, la prezentarea codului OPT_M.
+    Flag-ul -O3 aduce si el o imbunatarire considerabila si observam ca
+    timpul este redus cu cel putin 76%, fata de varianta neoptimizata.
+    Pentru varianta opt_f_extra am folosit flag-ul -ftree-parallelize-loops=4,
+    care paralelizeaza buclele, impartindu-le celor 4 thread-uri specificate
+    (1200 / 4 = 300 operatii).
+    Am folosit acest flag, pentru ca algoritmul va fi executat simultan
+    pe porțiuni, apoi reasamblat pentru aflarea rezultatului final si in enunt
+    era spicificat faptul ca putem folosi orice flag. :D
+    In urma adaugarii acestui flag, timpul a scazut cu cel putin 15%.
+    O alta varianta testata utiliza flag-urile -ffast-math si -funroll-loops,
+    care aduceau o imbunatatire de maxim 6.3%. Flag-urile prezentate
+    imbunatateau performanta prin eliminarea deadCode-ului din bucle si prin
+    optimizari matematice, in ceea ce priveste calculele.
+
+
+In urma a 10 rulari pentru fiecare dintre cele 5 variante, am ales cel mai mic
+timp pentru fiecare valoare a lui N, obtinand urmatoarele rezultate, prezentate si
+in graficele plot.png si performanta.xlsx:
+*(graficul din plot.png a fost generat cu ajutorul scriptului plot_script.p
+si a valorilor de mai jos).
+
+blas: 
+N=400: Time=0.048177
+N=800: Time=0.223304
+N=1000: Time=0.385022
+N=1200: Time=0.654982
+N=1600: Time=1.525666
+
+neopt:
+N=400: Time=0.897221
+N=800: Time=7.445568
+N=1000: Time=13.609676
+N=1200: Time=25.972313
+N=1600: Time=78.406944
+
+opt_m:
+N=400: Time=0.275304
+N=800: Time=2.207687
+N=1000: Time=4.081817
+N=1200: Time=7.433581
+N=1600: Time=22.002705
+
+opt_f:
+N=400: Time=0.245283
+N=800: Time=1.839222
+N=1000: Time=3.360314
+N=1200: Time=6.278624
+N=1600: Time=18.315781
+
+opt_f_extra:
+N=400: Time=0.204934
+N=800: Time=1.546620
+N=1000: Time=2.846633
+N=1200: Time=5.289877
+N=1600: Time=15.530546          
+
+[1] http://www.netlib.org/lapack/explore-html/d5/db0/cblas__dtrmm_8c.html    
